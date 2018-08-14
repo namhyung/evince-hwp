@@ -125,26 +125,13 @@ hwp_document_get_page_size (EvDocument *document,
 }
 
 static cairo_surface_t *
-hwp_document_render (EvDocument      *document,
-                     EvRenderContext *rc)
+hwp_page_render (GHWPPage        *ghwp_page,
+		 gint             width,
+		 gint             height,
+		 EvRenderContext *rc)
 {
-    GHWPPage        *ghwp_page;
-    gdouble          width_points, height_points;
-    guint            width,        height;
     cairo_surface_t *surface;
     cairo_t         *cr;
-
-    ghwp_page = GHWP_PAGE (rc->page->backend_page);
-
-    ghwp_page_get_size (ghwp_page, &width_points, &height_points);
-
-    if (rc->rotation == 90 || rc->rotation == 270) {
-        width  = (guint) ((height_points * rc->scale) + 0.5);
-        height = (guint) ((width_points  * rc->scale) + 0.5);
-    } else {
-        width  = (guint) ((width_points  * rc->scale) + 0.5);
-        height = (guint) ((height_points * rc->scale) + 0.5);
-    }
 
     surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                           width, height);
@@ -175,6 +162,24 @@ hwp_document_render (EvDocument      *document,
     cairo_destroy (cr);
 
     return surface;
+}
+
+static cairo_surface_t *
+hwp_document_render (EvDocument      *document,
+                     EvRenderContext *rc)
+{
+    GHWPPage        *ghwp_page;
+    gdouble          width_points, height_points;
+    gint             width,        height;
+
+    ghwp_page = GHWP_PAGE (rc->page->backend_page);
+
+    ghwp_page_get_size (ghwp_page, &width_points, &height_points);
+
+    ev_render_context_compute_transformed_size (rc, width_points, height_points,
+						&width, &height);
+
+    return hwp_page_render(ghwp_page, width, height, rc);
 }
 
 static EvDocumentInfo *
