@@ -252,6 +252,15 @@ hwp_document_get_info (EvDocument *document)
     return info;
 }
 
+static gboolean
+hwp_document_get_backend_info (EvDocument *document, EvDocumentBackendInfo *info)
+{
+  info->name    = "libhwp/cairo";
+  info->version = ghwp_get_version ();
+
+  return TRUE;
+}
+
 static void
 hwp_document_class_init (HWPDocumentClass *klass)
 {
@@ -267,7 +276,8 @@ hwp_document_class_init (HWPDocumentClass *klass)
     ev_document_class->get_thumbnail = hwp_document_get_thumbnail;
     ev_document_class->get_thumbnail_surface = hwp_document_get_thumbnail_surface;
     /* hwp summary infomation */
-    ev_document_class->get_info      = hwp_document_get_info;
+    ev_document_class->get_info              = hwp_document_get_info;
+    ev_document_class->get_backend_info      = hwp_document_get_backend_info;
 }
 
 static void
