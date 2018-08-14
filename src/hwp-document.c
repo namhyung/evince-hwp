@@ -187,6 +187,43 @@ hwp_document_render (EvDocument      *document,
     return hwp_page_render(ghwp_page, width, height, rc);
 }
 
+static cairo_surface_t *
+hwp_document_get_thumbnail_surface (EvDocument      *document,
+				    EvRenderContext *rc)
+{
+    GHWPPage        *ghwp_page;
+    cairo_surface_t *surface;
+    gdouble          page_width, page_height;
+    gint             width, height;
+
+    ghwp_page = GHWP_PAGE (rc->page->backend_page);
+
+    ghwp_page_get_size (ghwp_page, &page_width, &page_height);
+
+    ev_render_context_compute_transformed_size (rc, page_width, page_height,
+						&width, &height);
+
+    ev_document_fc_mutex_lock ();
+    surface = hwp_page_render (ghwp_page, width, height, rc);
+    ev_document_fc_mutex_unlock ();
+
+    return surface;
+}
+
+static GdkPixbuf *
+hwp_document_get_thumbnail (EvDocument      *document,
+			    EvRenderContext *rc)
+{
+    cairo_surface_t *surface;
+    GdkPixbuf       *pixbuf;
+
+    surface = hwp_document_get_thumbnail_surface (document, rc);
+    pixbuf = ev_document_misc_pixbuf_from_surface (surface);
+    cairo_surface_destroy (surface);
+
+    return pixbuf;
+}
+
 static EvDocumentInfo *
 hwp_document_get_info (EvDocument *document)
 {
@@ -227,6 +264,8 @@ hwp_document_class_init (HWPDocumentClass *klass)
     ev_document_class->get_page      = hwp_document_get_page;
     ev_document_class->get_page_size = hwp_document_get_page_size;
     ev_document_class->render        = hwp_document_render;
+    ev_document_class->get_thumbnail = hwp_document_get_thumbnail;
+    ev_document_class->get_thumbnail_surface = hwp_document_get_thumbnail_surface;
     /* hwp summary infomation */
     ev_document_class->get_info      = hwp_document_get_info;
 }
