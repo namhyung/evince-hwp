@@ -132,6 +132,8 @@ hwp_page_render (GHWPPage        *ghwp_page,
 {
     cairo_surface_t *surface;
     cairo_t         *cr;
+    gdouble          page_width, page_height;
+    gdouble          xscale, yscale;
 
     surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                           width, height);
@@ -151,7 +153,10 @@ hwp_page_render (GHWPPage        *ghwp_page,
         cairo_translate (cr, 0, 0);
     }
 
-    cairo_scale  (cr, rc->scale, rc->scale);
+    ghwp_page_get_size (ghwp_page, &page_width, &page_height);
+    ev_render_context_compute_scales (rc, page_width, page_height, &xscale, &yscale);
+
+    cairo_scale  (cr, xscale, yscale);
     cairo_rotate (cr, rc->rotation * G_PI / 180.0);
     ghwp_page_render (ghwp_page, cr);
 
